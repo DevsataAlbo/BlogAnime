@@ -107,7 +107,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    'whitenoise.storage.CompressedStaticFilesStorage'
+    'whitenoise.storage.CompressedStaticFilesStorage',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
@@ -116,7 +116,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'blog.middlewares.UserActivityMiddleware',  # Middleware personalizado para rastrear actividad
+    'blog.middlewares.UserActivityMiddleware',  
     'blog.middlewares.Custom404Middleware',
 
 ]
