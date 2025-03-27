@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 from django.utils.translation import gettext_lazy as _
 from dotenv import load_dotenv
+import dj_database_url
 
 # Cargar variables de entorno desde el archivo .env
 load_dotenv()
@@ -75,6 +76,7 @@ else:
     }
 
 ALLOWED_HOSTS = ['bloganime-production.up.railway.app']
+CSRF_TRUSTED_ORIGINS = ['bloganime-production.up.railway.app']
 
 # Application definition
 INSTALLED_APPS = [
@@ -155,14 +157,10 @@ WSGI_APPLICATION = 'anime_blog.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME', 'anime_blog'),
-        'USER': os.environ.get('DB_USER', 'postgres'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', 'postgres'),
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT', '5432'),
-    }
+    'default': dj_database_url.config(
+        default=os.environ.get('DATABASE_URL'),
+        conn_max_age=600
+    )
 }
 
 # Password validation
