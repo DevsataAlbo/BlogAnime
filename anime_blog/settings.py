@@ -75,8 +75,8 @@ else:
         },
     }
 
-ALLOWED_HOSTS = ['bloganime-production.up.railway.app']
-CSRF_TRUSTED_ORIGINS = ['bloganime-production.up.railway.app']
+ALLOWED_HOSTS = ['bloganime-production.up.railway.app', 'localhost', '127.0.0.1']
+CSRF_TRUSTED_ORIGINS = ['https://bloganime-production.up.railway.app']
 
 # Application definition
 INSTALLED_APPS = [
