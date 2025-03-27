@@ -1,0 +1,94 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% if is_new %}Nueva Categoría{% else %}Editar Categoría{% endif %} - Dashboard - AnimeBlog{% endblock %}
+
+{% block dashboard_content %}
+<div class="max-w-2xl mx-auto">
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">
+            {% if is_new %}Nueva Categoría{% else %}Editar Categoría{% endif %}
+        </h1>
+        {% if not is_new and user.is_admin %}
+            <button type="button" id="delete-category-btn" class="flex items-center text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                <span>Eliminar</span>
+            </button>
+        {% endif %}
+    </div>
+    
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            
+            <!-- Campos de formulario -->
+            {{ form|crispy }}
+            
+            <!-- Botones de acción -->
+            <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <a href="{% url 'dashboard:category_list' %}" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                    Cancelar
+                </a>
+                <button type="submit" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 dark:bg-primary-700 dark:hover:bg-primary-600 text-white rounded-md">
+                    {% if is_new %}Crear Categoría{% else %}Actualizar Categoría{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal de confirmación de eliminación -->
+{% if not is_new and user.is_admin %}
+<div id="delete-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
+    <div class="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
+        <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4">Confirmar eliminación</h3>
+        <p class="text-gray-700 dark:text-gray-300 mb-6">¿Estás seguro de que deseas eliminar esta categoría? Esta acción no se puede deshacer y puede afectar a los posts asociados.</p>
+        <div class="flex justify-end space-x-3">
+            <button id="cancel-delete" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                Cancelar
+            </button>
+            <form action="{% url 'dashboard:category_delete' category_id=category.id %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md">
+                    Eliminar
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const deleteBtn = document.getElementById('delete-category-btn');
+        const deleteModal = document.getElementById('delete-modal');
+        const cancelDelete = document.getElementById('cancel-delete');
+        
+        // Mostrar modal
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', function() {
+                deleteModal.classList.remove('hidden');
+            });
+        }
+        
+        // Ocultar modal
+        if (cancelDelete) {
+            cancelDelete.addEventListener('click', function() {
+                deleteModal.classList.add('hidden');
+            });
+        }
+        
+        // Cerrar modal al hacer clic fuera
+        if (deleteModal) {
+            deleteModal.addEventListener('click', function(e) {
+                if (e.target === deleteModal) {
+                    deleteModal.classList.add('hidden');
+                }
+            });
+        }
+    });
+</script>
+{% endif %}
+{% endblock %}

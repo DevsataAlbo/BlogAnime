@@ -1,0 +1,26 @@
+.dashboard-post-form {
+    /* Estilos base que aseguran el modo oscuro */
+    --bg-color: #1f2937;
+    --text-color: #f9fafb;
+    --border-color: #4b5563;
+    --primary-color: #3b82f6;
+    
+    color: var(--text-color);
+}
+
+.dashboard-post-form input,
+.dashboard-post-form textarea,
+.dashboard-post-form select {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+}
+
+.dashboard-post-form .cke_chrome {
+    border: 1px solid var(--border-color) !important;
+    background-color: var(--bg-color) !important;
+}
+
+.dashboard-post-form .cke_editable {
+    color: var(--text-color) !important;
+}

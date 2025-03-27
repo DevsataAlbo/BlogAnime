@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}Registrarse - AnimeBlog{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto my-10">
+    <div class="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-md">
+        <div class="px-6 py-8">
+            <h2 class="text-2xl font-bold text-center text-gray-800 dark:text-gray-200 mb-6">Crear una cuenta</h2>
+            
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+                
+                <!-- Formulario de registro -->
+                {{ form|crispy }}
+                
+                <div class="mt-6">
+                    <button type="submit" class="w-full px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-md dark:bg-primary-700 dark:hover:bg-primary-600">
+                        Registrarse
+                    </button>
+                </div>
+                
+                <p class="text-sm text-gray-600 dark:text-gray-400 mt-4">
+                    Al registrarte, aceptas nuestros 
+                    <a href="#" class="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300">
+                        Términos de servicio
+                    </a> 
+                    y 
+                    <a href="#" class="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300">
+                        Política de privacidad
+                    </a>.
+                </p>
+            </form>
+        </div>
+        
+        <div class="px-6 py-4 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
+            <p class="text-center text-gray-600 dark:text-gray-400">
+                ¿Ya tienes una cuenta? 
+                <a href="{% url 'accounts:login' %}" class="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium">
+                    Inicia sesión
+                </a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

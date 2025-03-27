@@ -1,0 +1,422 @@
+<!-- templates/blog/post_detail.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ post.title }} - AnimeBlog{% endblock %}
+
+{% block extra_css %}
+<!-- Estilos adicionales para el contenido del post -->
+<style>
+    .post-content h1 {
+        @apply text-2xl font-bold mt-6 mb-4;
+    }
+    .post-content h2 {
+        @apply text-xl font-bold mt-5 mb-3;
+    }
+    .post-content h3 {
+        @apply text-lg font-bold mt-4 mb-2;
+    }
+    .post-content p {
+        @apply my-3;
+    }
+    .post-content ul, .post-content ol {
+        @apply my-3 ml-6;
+    }
+    .post-content ul {
+        @apply list-disc;
+    }
+    .post-content ol {
+        @apply list-decimal;
+    }
+    .post-content a {
+        @apply text-primary-600 hover:underline dark:text-primary-400;
+    }
+    .post-content blockquote {
+        @apply border-l-4 border-primary-500 pl-4 italic my-4;
+    }
+    .post-content img {
+        @apply max-w-full h-auto my-4 rounded-lg;
+    }
+    .post-content pre {
+        @apply bg-gray-100 dark:bg-gray-800 p-4 rounded-lg my-4 overflow-x-auto;
+    }
+    .post-content code {
+        @apply bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded font-mono text-sm;
+    }
+
+    /* Mejorar contraste y visibilidad de los campos de formulario */
+    .post-form input[type="text"], 
+    .post-form textarea:not(.cke_source) {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+        color: #f3f4f6 !important;
+        border: 1px solid #4b5563 !important;
+        padding: 0.75rem !important;
+        border-radius: 0.375rem !important;
+        width: 100% !important;
+    }
+
+    /* Asegurar que el editor CKEditor se adapte al tamaño de la pantalla */
+    .django-ckeditor-widget,
+    .cke_chrome {
+        max-width: 100% !important;
+        overflow: hidden !important;
+    }
+
+    /* Mejorar contrastes en el editor */
+    .cke_wysiwyg_frame {
+        background-color: #f3f4f6 !important;
+    }
+
+    .cke_wysiwyg_div {
+        background-color: #f3f4f6 !important;
+        color: #1f2937 !important;
+    }
+
+    /* Hacer que los botones sean más visibles y táctiles */
+    .post-form button,
+    .post-form .btn,
+    .post-form input[type="submit"] {
+        padding: 0.5rem 1rem !important;
+        min-height: 2.5rem !important;
+        font-weight: 500 !important;
+    }
+
+    /* Mejorar el selector de categorías */
+    #category-dropdown-button {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+        color: #f3f4f6 !important;
+        border: 1px solid #4b5563 !important;
+        padding: 0.75rem !important;
+        text-align: left !important;
+        width: 100% !important;
+    }
+
+    #category-dropdown {
+        background-color: #1e293b !important;
+        border: 1px solid #4b5563 !important;
+        max-height: 200px !important;
+        overflow-y: auto !important;
+    }
+
+    #category-dropdown label {
+        color: #f3f4f6 !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+{% if is_draft %}
+<div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6" role="alert">
+  <p class="font-bold">Estado: Borrador</p>
+  <p>Este post está en estado de borrador y no es visible para el público.</p>
+</div>
+{% endif %}
+
+<div class="max-w-4xl mx-auto">
+    <!-- Breadcrumbs -->
+    <nav class="text-sm text-gray-500 dark:text-gray-400 mb-6">
+        <ol class="list-none p-0 flex flex-wrap items-center">
+            <li class="flex items-center">
+                <a href="{% url 'blog:index' %}" class="hover:text-primary-600 dark:hover:text-primary-400">Inicio</a>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mx-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+            </li>
+            {% if post.categories.all %}
+                <li class="flex items-center">
+                    <a href="{% url 'blog:category_list' slug=post.categories.first.slug %}" class="hover:text-primary-600 dark:hover:text-primary-400">{{ post.categories.first.name }}</a>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mx-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </li>
+            {% endif %}
+            <li class="flex-1 truncate">{{ post.title }}</li>
+        </ol>
+    </nav>
+    
+    <!-- Encabezado del post -->
+    <header class="mb-8">
+        <h1 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">{{ post.title }}</h1>
+        
+        <div class="flex flex-wrap items-center text-sm text-gray-600 dark:text-gray-400 mb-4 gap-4">
+            <!-- Autor -->
+            <div class="flex items-center">
+                {% if post.author.profile_pic %}
+                    <img src="{{ post.author.profile_pic.url }}" alt="{{ post.author.username }}" class="h-10 w-10 rounded-full object-cover">
+                {% else %}
+                    <div class="h-10 w-10 rounded-full bg-primary-500 text-white flex items-center justify-center">
+                        {{ post.author.username|first|upper }}
+                    </div>
+                {% endif %}
+                <div class="ml-3">
+                    <p class="font-medium text-gray-800 dark:text-gray-200">{{ post.author.get_full_name|default:post.author.username }}</p>
+                    <p class="text-xs">{{ post.published_at|date:"j F, Y" }}</p>
+                </div>
+            </div>
+            <!-- Categorías -->
+            <div class="flex flex-wrap gap-2">
+                {% for category in post.categories.all %}
+                    <a href="{% url 'blog:category_list' slug=category.slug %}" class="px-2 py-1 text-xs rounded-full bg-gray-100 text-primary-700 dark:bg-gray-700 dark:text-primary-300 font-medium">{{ category.name }}</a>
+                {% endfor %}
+            </div>
+            
+            <!-- Estadísticas -->
+            <div class="flex items-center space-x-4 ml-auto">
+                <span class="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    {{ post.views_count }}
+                </span>
+                <span class="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                    {{ post.likes_count }}
+                </span>
+                <span class="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                    </svg>
+                    {{ comments|length }}
+                </span>
+            </div>
+        </div>
+        
+        <!-- Imagen destacada -->
+        {% if post.featured_image %}
+            <div class="mb-6">
+                <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" class="w-full h-auto max-h-[500px] object-cover rounded-lg">
+            </div>
+        {% endif %}
+        
+        <!-- Resumen del post -->
+        <div class="text-lg text-gray-700 dark:text-gray-300 mb-6 border-l-4 border-primary-500 pl-4 italic">
+            {{ post.summary }}
+        </div>
+    </header>
+    
+    <!-- Contenido del post -->
+    <article class="prose prose-lg dark:prose-invert max-w-none mb-10 post-content text-gray-800 dark:text-gray-200">
+        {{ post.content|safe }}
+    </article>
+    
+    <!-- Compartir en redes sociales -->
+    <div class="border-t border-b border-gray-200 dark:border-gray-700 py-6 mb-10">
+        <div class="flex flex-wrap items-center justify-between">
+            <div class="text-sm text-gray-600 dark:text-gray-400 mb-3 md:mb-0">
+                ¿Te gustó este artículo? ¡Compártelo!
+            </div>
+            <div class="flex space-x-3">
+                <a href="#" class="p-2 bg-[#1DA1F2] text-white rounded-full hover:bg-opacity-90" title="Compartir en Twitter">
+                    <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-.417-.55-.694-1.189-.694-1.868 0-1.211.645-2.284 1.624-2.927-.599.038-1.162.195-1.656.457-.009-.058-.009-.116-.009-.174 0-1.718 1.213-3.159 2.825-3.481-.308-.08-.634-.123-.969-.123-.237 0-.464.025-.689.072.45-1.409 1.754-2.437 3.3-2.467-1.209-.948-2.731-1.512-4.388-1.512-.285 0-.567.016-.847.048 1.563-.998 3.417-1.582 5.417-1.582 6.499 0 10.051 5.381 10.051 10.051 0 .153-.004.306-.01.459.69.498 1.285 1.12 1.755 1.831z"/>
+                    </svg>
+                </a>
+                <a href="#" class="p-2 bg-[#3b5998] text-white rounded-full hover:bg-opacity-90" title="Compartir en Facebook">
+                    <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M22.676 0H1.324C.593 0 0 .593 0 1.324v21.352C0 23.408.593 24 1.324 24h11.494v-9.294H9.689v-3.621h3.129V8.41c0-3.099 1.894-4.785 4.659-4.785 1.325 0 2.464.097 2.796.141v3.24h-1.921c-1.5 0-1.792.721-1.792 1.771v2.311h3.584l-.465 3.63H16.56V24h6.115c.733 0 1.325-.592 1.325-1.324V1.324C24 .593 23.408 0 22.676 0"/>
+                    </svg>
+                </a>
+                <a href="#" class="p-2 bg-[#0e76a8] text-white rounded-full hover:bg-opacity-90" title="Compartir en LinkedIn">
+                    <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                    </svg>
+                </a>
+                <a href="#" class="p-2 bg-[#25D366] text-white rounded-full hover:bg-opacity-90" title="Compartir en WhatsApp">
+                    <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                    </svg>
+                </a>
+                <button id="like-post" class="p-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600" title="Me gusta" data-post-id="{{ post.id }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Autor del post -->
+    <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 mb-10">
+        <div class="flex flex-col md:flex-row items-center md:items-start">
+            {% if post.author.profile_pic %}
+                <img src="{{ post.author.profile_pic.url }}" alt="{{ post.author.username }}" class="h-20 w-20 rounded-full object-cover mb-4 md:mb-0 md:mr-6">
+            {% else %}
+                <div class="h-20 w-20 rounded-full bg-primary-500 text-white flex items-center justify-center text-xl mb-4 md:mb-0 md:mr-6">
+                    {{ post.author.username|first|upper }}
+                </div>
+            {% endif %}
+            <div class="text-center md:text-left">
+                <h3 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-2">{{ post.author.get_full_name|default:post.author.username }}</h3>
+                {% if post.author.bio %}
+                    <p class="text-gray-600 dark:text-gray-400 mb-4">{{ post.author.bio|truncatewords:35 }}</p>
+                {% endif %}
+                <div class="flex justify-center md:justify-start space-x-3">
+                    {% if post.author.website %}
+                        <a href="{{ post.author.website }}" target="_blank" class="text-gray-600 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                            </svg>
+                        </a>
+                    {% endif %}
+                    {% if post.author.twitter %}
+                        <a href="https://twitter.com/{{ post.author.twitter }}" target="_blank" class="text-gray-600 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400">
+                            <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-.417-.55-.694-1.189-.694-1.868 0-1.211.645-2.284 1.624-2.927-.599.038-1.162.195-1.656.457-.009-.058-.009-.116-.009-.174 0-1.718 1.213-3.159 2.825-3.481-.308-.08-.634-.123-.969-.123-.237 0-.464.025-.689.072.45-1.409 1.754-2.437 3.3-2.467-1.209-.948-2.731-1.512-4.388-1.512-.285 0-.567.016-.847.048 1.563-.998 3.417-1.582 5.417-1.582 6.499 0 10.051 5.381 10.051 10.051 0 .153-.004.306-.01.459.69.498 1.285 1.12 1.755 1.831z"/>
+                            </svg>
+                        </a>
+                    {% endif %}
+                    {% if post.author.instagram %}
+                        <a href="https://instagram.com/{{ post.author.instagram }}" target="_blank" class="text-gray-600 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400">
+                            <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                            </svg>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Comentarios -->
+    <div class="mb-10">
+        <h3 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-6">Comentarios ({{ comments|length }})</h3>
+        
+        {% if comments %}
+            <div class="space-y-6">
+                {% for comment in comments %}
+                    <div class="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
+                        <div class="flex items-start">
+                            {% if comment.user.profile_pic %}
+                                <img src="{{ comment.user.profile_pic.url }}" alt="{{ comment.user.username }}" class="h-10 w-10 rounded-full object-cover mr-4">
+                            {% else %}
+                                <div class="h-10 w-10 rounded-full bg-primary-500 text-white flex items-center justify-center mr-4">
+                                    {{ comment.user.username|first|upper }}
+                                </div>
+                            {% endif %}
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between mb-1">
+                                    <div class="font-medium text-gray-800 dark:text-gray-200">{{ comment.user.get_full_name|default:comment.user.username }}</div>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400">{{ comment.created_at|date:"j M, Y" }}</div>
+                                </div>
+                                <div class="text-gray-700 dark:text-gray-300">
+                                    {{ comment.content }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-8 text-gray-600 dark:text-gray-400">
+                <p>Aún no hay comentarios. ¡Sé el primero en comentar!</p>
+            </div>
+        {% endif %}
+        
+        <!-- Formulario de comentarios -->
+        {% if user.is_authenticated %}
+            <div class="mt-8">
+                <h4 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Deja tu comentario</h4>
+                <form action="{% url 'blog:add_comment' post_id=post.id %}" method="post">
+                    {% csrf_token %}
+                    <div class="mb-4">
+                        {{ comment_form.content }}
+                    </div>
+                    <div class="text-right">
+                        <button type="submit" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-md dark:bg-primary-700 dark:hover:bg-primary-600">
+                            Publicar comentario
+                        </button>
+                    </div>
+                </form>
+            </div>
+        {% else %}
+            <div class="mt-8 text-center bg-gray-50 dark:bg-gray-800 rounded-lg p-6">
+                <p class="text-gray-700 dark:text-gray-300 mb-4">Debes iniciar sesión para dejar un comentario.</p>
+                <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-md dark:bg-primary-700 dark:hover:bg-primary-600 inline-block">
+                    Iniciar sesión
+                </a>
+            </div>
+        {% endif %}
+    </div>
+    <!-- Posts relacionados -->
+    {% if related_posts %}
+        <div>
+            <h3 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-6">Posts relacionados</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {% for related_post in related_posts %}
+                    <div class="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition duration-200">
+                        <div class="relative pb-[60%]">
+                            {% if related_post.featured_image %}
+                                <img src="{{ related_post.featured_image.url }}" alt="{{ related_post.title }}" class="absolute inset-0 w-full h-full object-cover">
+                            {% else %}
+                                <div class="absolute inset-0 w-full h-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center">
+                                    <span class="text-gray-500 dark:text-gray-400">Sin imagen</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="p-4">
+                            <h4 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2 line-clamp-2">
+                                <a href="{% url 'blog:post_detail' slug=related_post.slug %}">{{ related_post.title }}</a>
+                            </h4>
+                            <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                                <span>{{ related_post.published_at|date:"j M, Y" }}</span>
+                                <span class="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                    {{ related_post.views_count }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Función para dar like a un post
+    document.addEventListener('DOMContentLoaded', function() {
+        const likeButton = document.getElementById('like-post');
+        if (likeButton) {
+            likeButton.addEventListener('click', function() {
+                const postId = this.getAttribute('data-post-id');
+                
+                fetch(`/like-post/${postId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'same-origin',
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Actualizar contador de likes
+                    const likesCounters = document.querySelectorAll('[data-likes-count]');
+                    likesCounters.forEach(counter => {
+                        counter.textContent = data.likes;
+                    });
+                    
+                    // Agregar clase para mostrar que se dio like
+                    likeButton.classList.add('bg-red-100', 'text-red-500');
+                    likeButton.classList.remove('bg-gray-200', 'text-gray-700', 'dark:bg-gray-700', 'dark:text-gray-300');
+                    
+                    // Deshabilitar botón para evitar múltiples likes
+                    likeButton.disabled = true;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}

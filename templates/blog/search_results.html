@@ -1,0 +1,98 @@
+<!-- templates/blog/search_results.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Resultados de búsqueda - AnimeBlog{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <div class="mb-8">
+        <h1 class="text-3xl md:text-4xl font-bold text-gray-800 dark:text-gray-200 text-center mb-2">Resultados de búsqueda</h1>
+        <div class="text-center text-gray-600 dark:text-gray-400">
+            {% if search_form.query.value %}
+                {% with count=posts|length %}
+                    {% if count == 0 %}
+                        No se encontraron resultados para "{{ search_form.query.value }}"
+                    {% elif count == 1 %}
+                        Se encontró 1 resultado para "{{ search_form.query.value }}"
+                    {% else %}
+                        Se encontraron {{ count }} resultados para "{{ search_form.query.value }}"
+                    {% endif %}
+                {% endwith %}
+            {% else %}
+                Introduce un término de búsqueda
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Formulario de búsqueda -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mb-8">
+        <form action="{% url 'blog:search_results' %}" method="get" class="flex flex-col md:flex-row md:items-center gap-4">
+            {{ search_form.query }}
+            <button type="submit" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-md dark:bg-primary-700 dark:hover:bg-primary-600">
+                Buscar
+            </button>
+        </form>
+    </div>
+    
+    <!-- Resultados de búsqueda -->
+    {% if posts %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+            {% for post in posts %}
+                <div class="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition duration-200 flex flex-col h-full">
+                    <div class="relative pb-[60%]">
+                        {% if post.featured_image %}
+                            <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" class="absolute inset-0 w-full h-full object-cover">
+                        {% else %}
+                            <div class="absolute inset-0 w-full h-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center">
+                                <span class="text-gray-500 dark:text-gray-400">Sin imagen</span>
+                            </div>
+                        {% endif %}
+                        <div class="absolute top-2 left-2 flex flex-wrap gap-2">
+                            {% for category in post.categories.all|slice:":2" %}
+                                <a href="{% url 'blog:category_list' slug=category.slug %}" class="px-2 py-1 text-xs rounded-full bg-white text-primary-700 dark:bg-gray-700 dark:text-primary-300 font-semibold">{{ category.name }}</a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="p-4 flex-grow flex flex-col">
+                        <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2 line-clamp-2">
+                            <a href="{% url 'blog:post_detail' slug=post.slug %}" class="hover:text-primary-600 dark:hover:text-primary-400">{{ post.title }}</a>
+                        </h2>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm mb-4 flex-grow line-clamp-3">{{ post.summary }}</p>
+                        <div class="flex items-center justify-between mt-auto text-sm text-gray-500 dark:text-gray-400">
+                            <div class="flex items-center">
+                                {% if post.author.profile_pic %}
+                                    <img src="{{ post.author.profile_pic.url }}" alt="{{ post.author.username }}" class="h-6 w-6 rounded-full object-cover mr-2">
+                                {% else %}
+                                    <div class="h-6 w-6 rounded-full bg-primary-500 text-white flex items-center justify-center text-xs mr-2">
+                                        {{ post.author.username|first|upper }}
+                                    </div>
+                                {% endif %}
+                                <a href="{% url 'accounts:user_profile' username=post.author.username %}" class="hover:text-primary-600 dark:hover:text-primary-400">{{ post.author.username }}</a>
+                            </div>
+                            <span>{{ post.published_at|date:"j M, Y" }}</span>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% elif search_form.query.value %}
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8 text-center mb-8">
+            <p class="text-gray-600 dark:text-gray-400 mb-4">No se encontraron resultados para tu búsqueda.</p>
+            <p class="text-gray-600 dark:text-gray-400">Prueba con otros términos o consulta las <a href="{% url 'blog:post_list' %}" class="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300">últimas publicaciones</a>.</p>
+        </div>
+    {% endif %}
+    
+    <!-- Sugerencias de categorías -->
+    <div class="mt-8">
+        <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">Explora por categorías</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            {% for category in global_categories %}
+                <a href="{% url 'blog:category_list' slug=category.slug %}" class="bg-white dark:bg-gray-800 rounded-lg p-3 text-center shadow-sm hover:shadow-md transition duration-200">
+                    <h3 class="text-sm font-medium text-primary-600 dark:text-primary-400">{{ category.name }}</h3>
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

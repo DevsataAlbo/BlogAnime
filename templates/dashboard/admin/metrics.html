@@ -1,0 +1,377 @@
+<!-- templates/dashboard/admin/metrics.html -->
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Métricas - Admin Dashboard - AnimeBlog{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.css">
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="space-y-6">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+        <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">Métricas del Blog</h1>
+        
+        <!-- Selector de rango de tiempo -->
+        <div class="mt-4 md:mt-0">
+            <form method="get" class="flex space-x-2">
+                <select name="days" class="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 text-sm">
+                    <option value="7" {% if days == 7 %}selected{% endif %}>Últimos 7 días</option>
+                    <option value="30" {% if days == 30 %}selected{% endif %}>Últimos 30 días</option>
+                    <option value="90" {% if days == 90 %}selected{% endif %}>Últimos 90 días</option>
+                    <option value="365" {% if days == 365 %}selected{% endif %}>Último año</option>
+                </select>
+                <button type="submit" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-md dark:bg-primary-700 dark:hover:bg-primary-600 text-sm">
+                    Aplicar
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Resumen de estadísticas -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Vistas totales -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-blue-100 dark:bg-blue-900 mr-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600 dark:text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Vistas totales</p>
+                    <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-200">{{ views_total|default:0 }}</h3>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Posts publicados -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-green-100 dark:bg-green-900 mr-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600 dark:text-green-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Posts publicados</p>
+                    <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-200">{{ published_posts_count|default:0 }}</h3>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Usuarios registrados -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-purple-100 dark:bg-purple-900 mr-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-purple-600 dark:text-purple-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Usuarios registrados</p>
+                    <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-200">{{ users_count|default:0 }}</h3>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Likes recibidos -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-red-100 dark:bg-red-900 mr-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-600 dark:text-red-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Likes recibidos</p>
+                    <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-200">{{ likes_total|default:0 }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Gráficos -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Gráfico de vistas por día -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+            <h2 class="text-lg font-bold text-gray-800 dark:text-gray-200 mb-4">Vistas por día</h2>
+            <div class="h-64">
+                <canvas id="viewsChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Gráfico de posts nuevos por día -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+            <h2 class="text-lg font-bold text-gray-800 dark:text-gray-200 mb-4">Posts publicados por día</h2>
+            <div class="h-64">
+                <canvas id="postsChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Gráfico de registros de usuarios por día -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+            <h2 class="text-lg font-bold text-gray-800 dark:text-gray-200 mb-4">Nuevos usuarios por día</h2>
+            <div class="h-64">
+                <canvas id="signupsChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Gráfico de posts por autor -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+            <h2 class="text-lg font-bold text-gray-800 dark:text-gray-200 mb-4">Posts por autor</h2>
+            <div class="h-64">
+                <canvas id="authorsChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Posts más populares -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+        <h2 class="text-lg font-bold text-gray-800 dark:text-gray-200 mb-4">Posts más populares</h2>
+        
+        {% if popular_posts %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead class="bg-gray-50 dark:bg-gray-700">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Puesto</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Post</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Autor</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Vistas</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Likes</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Publicado</th>
+                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                        {% for post in popular_posts %}
+                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-bold text-gray-900 dark:text-gray-100">
+                                        #{{ forloop.counter }}
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-10 w-10 rounded overflow-hidden">
+                                            {% if post.featured_image %}
+                                                <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" class="h-10 w-10 object-cover">
+                                            {% else %}
+                                                <div class="h-10 w-10 bg-gray-300 dark:bg-gray-600 flex items-center justify-center text-gray-500 dark:text-gray-400 text-xs">Sin img</div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                <a href="{% url 'blog:post_detail' slug=post.slug %}" class="hover:text-primary-600 dark:hover:text-primary-400">{{ post.title }}</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-500 dark:text-gray-400">
+                                        {{ post.author.username }}
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900 dark:text-gray-100 font-medium">
+                                        {{ post.views_count }}
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900 dark:text-gray-100 font-medium">
+                                        {{ post.likes_count }}
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-500 dark:text-gray-400">
+                                        {{ post.published_at|date:"j M, Y" }}
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <a href="{% url 'dashboard:post_edit' post_id=post.id %}" class="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-300 mr-3">Editar</a>
+                                    <a href="{% url 'blog:post_detail' slug=post.slug %}" class="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-300">Ver</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                <p>No hay datos disponibles para el período seleccionado.</p>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Categorías populares -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+        <h2 class="text-lg font-bold text-gray-800 dark:text-gray-200 mb-4">Categorías más populares</h2>
+        
+        {% if popular_categories %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {% for category in popular_categories %}
+                    <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="text-base font-medium text-gray-800 dark:text-gray-200">{{ category.name }}</h3>
+                            <span class="text-sm text-gray-500 dark:text-gray-400">{{ category.view_count }} vistas</span>
+                        </div>
+                        <div class="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2.5">
+                            <div class="bg-primary-600 dark:bg-primary-500 h-2.5 rounded-full" style="width: {% widthratio category.view_count popular_categories.0.view_count 100 %}%"></div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                <p>No hay datos disponibles para el período seleccionado.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script>
+    // Función para obtener color según si es modo oscuro o claro
+    function getColor(isDark, color, opacity = 1) {
+        const colors = {
+            blue: isDark ? `rgba(96, 165, 250, ${opacity})` : `rgba(59, 130, 246, ${opacity})`,
+            green: isDark ? `rgba(74, 222, 128, ${opacity})` : `rgba(34, 197, 94, ${opacity})`,
+            purple: isDark ? `rgba(192, 132, 252, ${opacity})` : `rgba(168, 85, 247, ${opacity})`,
+            red: isDark ? `rgba(251, 113, 133, ${opacity})` : `rgba(239, 68, 68, ${opacity})`,
+            gray: isDark ? `rgba(156, 163, 175, ${opacity})` : `rgba(107, 114, 128, ${opacity})`
+        };
+        return colors[color] || colors.blue;
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        const isDarkMode = document.documentElement.classList.contains('dark');
+        const textColor = isDarkMode ? 'rgba(229, 231, 235, 0.8)' : 'rgba(31, 41, 55, 0.8)';
+        const gridColor = isDarkMode ? 'rgba(75, 85, 99, 0.2)' : 'rgba(209, 213, 219, 0.2)';
+        
+        // Configuración común para los gráficos
+        const chartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        color: gridColor
+                    },
+                    ticks: {
+                        color: textColor
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: gridColor
+                    },
+                    ticks: {
+                        color: textColor
+                    }
+                }
+            }
+        };
+        
+        // Gráfico de vistas por día
+        const viewsCtx = document.getElementById('viewsChart').getContext('2d');
+        const viewsChart = new Chart(viewsCtx, {
+            type: 'line',
+            data: {
+                labels: {{ views_by_day_labels|safe }},
+                datasets: [{
+                    label: 'Vistas',
+                    data: {{ views_by_day_data|safe }},
+                    backgroundColor: getColor(isDarkMode, 'blue', 0.2),
+                    borderColor: getColor(isDarkMode, 'blue', 1),
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: true
+                }]
+            },
+            options: chartOptions
+        });
+        
+        // Gráfico de posts por día
+        const postsCtx = document.getElementById('postsChart').getContext('2d');
+        const postsChart = new Chart(postsCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ posts_by_day_labels|safe }},
+                datasets: [{
+                    label: 'Posts',
+                    data: {{ posts_by_day_data|safe }},
+                    backgroundColor: getColor(isDarkMode, 'green', 0.7),
+                    borderColor: getColor(isDarkMode, 'green', 1),
+                    borderWidth: 1
+                }]
+            },
+            options: chartOptions
+        });
+        
+        // Gráfico de nuevos usuarios por día
+        const signupsCtx = document.getElementById('signupsChart').getContext('2d');
+        const signupsChart = new Chart(signupsCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ signups_by_day_labels|safe }},
+                datasets: [{
+                    label: 'Nuevos usuarios',
+                    data: {{ signups_by_day_data|safe }},
+                    backgroundColor: getColor(isDarkMode, 'purple', 0.7),
+                    borderColor: getColor(isDarkMode, 'purple', 1),
+                    borderWidth: 1
+                }]
+            },
+            options: chartOptions
+        });
+        
+        // Gráfico de posts por autor
+        const authorsCtx = document.getElementById('authorsChart').getContext('2d');
+        const authorsChart = new Chart(authorsCtx, {
+            type: 'doughnut',
+            data: {
+                labels: {{ authors_labels|safe }},
+                datasets: [{
+                    label: 'Posts por autor',
+                    data: {{ authors_data|safe }},
+                    backgroundColor: [
+                        getColor(isDarkMode, 'blue', 0.7),
+                        getColor(isDarkMode, 'green', 0.7),
+                        getColor(isDarkMode, 'purple', 0.7),
+                        getColor(isDarkMode, 'red', 0.7),
+                        getColor(isDarkMode, 'gray', 0.7)
+                    ],
+                    borderColor: isDarkMode ? 'rgba(31, 41, 55, 1)' : 'white',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            color: textColor,
+                            font: {
+                                size: 12
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}

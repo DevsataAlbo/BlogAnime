@@ -1,0 +1,218 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}AnimeBlog - Tu portal de animación japonesa{% endblock %}
+
+{% block content %}
+<div class="space-y-10">
+    <!-- Hero section con post destacado -->
+    {% if featured_posts.0 %}
+        <section class="relative">
+            <div class="bg-gradient-to-r from-primary-700 to-primary-900 dark:from-gray-800 dark:to-gray-900 rounded-lg overflow-hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2">
+                    <div class="p-6 md:p-10 flex flex-col justify-center">
+                        <div class="space-y-4">
+                            {% for category in featured_posts.0.categories.all|slice:":1" %}
+                                <a href="{% url 'blog:category_list' slug=category.slug %}" class="inline-block px-3 py-1 text-xs rounded-full bg-white text-primary-700 dark:bg-gray-700 dark:text-primary-300 font-semibold">{{ category.name }}</a>
+                            {% endfor %}
+                            <h1 class="text-xl md:text-3xl font-bold text-white">{{ featured_posts.0.title }}</h1>
+                            <p class="text-gray-200 text-sm md:text-base line-clamp-3">{{ featured_posts.0.summary }}</p>
+                            <div class="flex items-center space-x-4">
+                                <div class="flex items-center">
+                                    {% if featured_posts.0.author.profile_pic %}
+                                        <img src="{{ featured_posts.0.author.profile_pic.url }}" alt="{{ featured_posts.0.author.username }}" class="h-8 w-8 rounded-full object-cover">
+                                    {% else %}
+                                        <div class="h-8 w-8 rounded-full bg-primary-400 text-white flex items-center justify-center">
+                                            {{ featured_posts.0.author.username|first|upper }}
+                                        </div>
+                                    {% endif %}
+                                    <span class="ml-2 text-xs text-gray-200">{{ featured_posts.0.author.username }}</span>
+                                </div>
+                                <span class="text-xs text-gray-300">{{ featured_posts.0.published_at|date:"j M, Y" }}</span>
+                            </div>
+                            <div>
+                                <a href="{% url 'blog:post_detail' slug=featured_posts.0.slug %}" class="inline-block px-4 py-2 bg-white text-primary-700 dark:bg-gray-700 dark:text-white rounded-md hover:bg-gray-100 dark:hover:bg-gray-600 transition duration-200">
+                                    Leer más
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="hidden md:block">
+                        {% if featured_posts.0.featured_image %}
+                            <img src="{{ featured_posts.0.featured_image.url }}" alt="{{ featured_posts.0.title }}" class="w-full h-full object-cover">
+                        {% else %}
+                            <div class="w-full h-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
+                                <span class="text-gray-500 dark:text-gray-400">Sin imagen</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </section>
+    {% endif %}
+    
+    <!-- Posts destacados grid -->
+    {% if featured_posts|slice:"1:5" %}
+        <section>
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl md:text-2xl font-bold text-gray-800 dark:text-gray-200">Posts destacados</h2>
+                <a href="{% url 'blog:post_list' %}" class="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium">Ver todos</a>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {% for post in featured_posts|slice:"1:5" %}
+                    <div class="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition duration-200">
+                        <div class="relative pb-[60%]">
+                            {% if post.featured_image %}
+                                <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" class="absolute inset-0 w-full h-full object-cover">
+                            {% else %}
+                                <div class="absolute inset-0 w-full h-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center">
+                                    <span class="text-gray-500 dark:text-gray-400">Sin imagen</span>
+                                </div>
+                            {% endif %}
+                            {% for category in post.categories.all|slice:":1" %}
+                                <a href="{% url 'blog:category_list' slug=category.slug %}" class="absolute top-2 left-2 px-2 py-1 text-xs rounded-full bg-white text-primary-700 dark:bg-gray-700 dark:text-primary-300 font-semibold">{{ category.name }}</a>
+                            {% endfor %}
+                        </div>
+                        <div class="p-4">
+                            <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2 line-clamp-2">
+                                <a href="{% url 'blog:post_detail' slug=post.slug %}">{{ post.title }}</a>
+                            </h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-4">{{ post.summary }}</p>
+                            <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                                <div class="flex items-center">
+                                    {% if post.author.profile_pic %}
+                                        <img src="{{ post.author.profile_pic.url }}" alt="{{ post.author.username }}" class="h-6 w-6 rounded-full object-cover">
+                                    {% else %}
+                                        <div class="h-6 w-6 rounded-full bg-primary-400 text-white flex items-center justify-center text-xs">
+                                            {{ post.author.username|first|upper }}
+                                        </div>
+                                    {% endif %}
+                                    <span class="ml-2">{{ post.author.username }}</span>
+                                </div>
+                                <span>{{ post.published_at|date:"j M, Y" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+    
+    <!-- Categorías populares -->
+    {% if popular_categories %}
+        <section class="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 md:p-8">
+            <h2 class="text-xl md:text-2xl font-bold text-gray-800 dark:text-gray-200 mb-6">Categorías populares</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {% for category in popular_categories %}
+                    <a href="{% url 'blog:category_list' slug=category.slug %}" class="bg-white dark:bg-gray-700 rounded-lg p-4 shadow-sm hover:shadow-md transition duration-200 flex flex-col items-center justify-center text-center">
+                        <span class="text-lg font-semibold text-primary-600 dark:text-primary-400 mb-1">{{ category.name }}</span>
+                        <span class="text-xs text-gray-500 dark:text-gray-400">{{ category.post_count }} posts</span>
+                    </a>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+    
+    <!-- Posts recientes -->
+    {% if latest_posts %}
+        <section>
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl md:text-2xl font-bold text-gray-800 dark:text-gray-200">Posts recientes</h2>
+                <a href="{% url 'blog:post_list' %}" class="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium">Ver todos</a>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for post in latest_posts %}
+                    <div class="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition duration-200 flex flex-col">
+                        <div class="relative pb-[60%]">
+                            {% if post.featured_image %}
+                                <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" class="absolute inset-0 w-full h-full object-cover">
+                            {% else %}
+                                <div class="absolute inset-0 w-full h-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center">
+                                    <span class="text-gray-500 dark:text-gray-400">Sin imagen</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="p-4 flex-grow flex flex-col">
+                            <div class="mb-2 flex flex-wrap gap-2">
+                                {% for category in post.categories.all|slice:":2" %}
+                                    <a href="{% url 'blog:category_list' slug=category.slug %}" class="px-2 py-1 text-xs rounded-full bg-gray-100 text-primary-700 dark:bg-gray-700 dark:text-primary-300 font-medium">{{ category.name }}</a>
+                                {% endfor %}
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">
+                                <a href="{% url 'blog:post_detail' slug=post.slug %}">{{ post.title }}</a>
+                            </h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4 flex-grow line-clamp-3">{{ post.summary }}</p>
+                            <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mt-auto">
+                                <div class="flex items-center">
+                                    {% if post.author.profile_pic %}
+                                        <img src="{{ post.author.profile_pic.url }}" alt="{{ post.author.username }}" class="h-6 w-6 rounded-full object-cover">
+                                    {% else %}
+                                        <div class="h-6 w-6 rounded-full bg-primary-400 text-white flex items-center justify-center text-xs">
+                                            {{ post.author.username|first|upper }}
+                                        </div>
+                                    {% endif %}
+                                    <span class="ml-2">{{ post.author.username }}</span>
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    <span class="flex items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                        {{ post.views_count }}
+                                    </span>
+                                    <span>{{ post.published_at|date:"j M, Y" }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+    
+    <!-- Posts populares (sidebar-style) -->
+    {% if popular_posts %}
+        <section>
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl md:text-2xl font-bold text-gray-800 dark:text-gray-200">Posts populares</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {% for post in popular_posts %}
+                    <div class="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition duration-200 flex">
+                        <div class="w-1/3 relative">
+                            {% if post.featured_image %}
+                                <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" class="absolute inset-0 w-full h-full object-cover">
+                            {% else %}
+                                <div class="absolute inset-0 w-full h-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center">
+                                    <span class="text-gray-500 dark:text-gray-400">Sin imagen</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="w-2/3 p-4">
+                            <h3 class="text-base font-semibold text-gray-800 dark:text-gray-200 mb-1 line-clamp-2">
+                                <a href="{% url 'blog:post_detail' slug=post.slug %}">{{ post.title }}</a>
+                            </h3>
+                            <div class="mb-2 flex flex-wrap gap-1">
+                                {% for category in post.categories.all|slice:":1" %}
+                                    <a href="{% url 'blog:category_list' slug=category.slug %}" class="px-1.5 py-0.5 text-xs rounded-full bg-gray-100 text-primary-700 dark:bg-gray-700 dark:text-primary-300">{{ category.name }}</a>
+                                {% endfor %}
+                            </div>
+                            <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                                <span>{{ post.published_at|date:"j M, Y" }}</span>
+                                <span class="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                    {{ post.views_count }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+</div>
+{% endblock %}
