@@ -74,7 +74,7 @@ else:
         },
     }
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['bloganime-production.up.railway.app']
 
 # Application definition
 INSTALLED_APPS = [
