@@ -34,13 +34,26 @@ class Category(models.Model):
 
 def post_image_path(instance, filename):
     """Genera la ruta para guardar las imágenes de los posts"""
-    ext = filename.split('.')[-1]
-    # Genera un slug corto, máximo 30 caracteres
-    slug = instance.slug[:30] if instance.slug else slugify(instance.title)[:30]
-    # Usa un nombre más corto y único
     import uuid
+    from django.utils.text import slugify
+    
+    # Obtener la extensión del archivo
+    ext = filename.split('.')[-1]
+    
+    # Generar un slug más corto basado en el título (máximo 20 caracteres)
+    slug_base = instance.slug[:20] if instance.slug else slugify(instance.title)[:20]
+    
+    # Limpiar el slug de cualquier carácter especial
+    slug_clean = ''.join(c for c in slug_base if c.isalnum() or c == '-')
+    
+    # Generar un identificador único corto
     unique_id = str(uuid.uuid4())[:8]
-    return os.path.join('post_images', f'{slug}-{unique_id}.{ext}')
+    
+    # Crear un nombre de archivo más corto y limpio
+    filename = f"{slug_clean}-{unique_id}.{ext}"
+    
+    # Devolver la ruta completa
+    return os.path.join('post_images', filename)
 
 class Post(models.Model):
     """Modelo para posts del blog"""
@@ -54,7 +67,7 @@ class Post(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts')
     content = models.TextField(_('content'))
     summary = models.TextField(_('summary'), max_length=500)
-    featured_image = models.ImageField(_('featured image'), upload_to=post_image_path)
+    featured_image = models.ImageField(_('featured image'), upload_to=post_image_path, max_length=500)
     categories = models.ManyToManyField(Category, related_name='posts')
     status = models.CharField(_('status'), max_length=10, choices=STATUS_CHOICES, default='draft')
     
@@ -86,14 +99,9 @@ class Post(models.Model):
         if not self.featured_image:
             return None
         
-        from django.conf import settings
-        
-        if settings.DEBUG:
-            # URL local en desarrollo
-            return self.featured_image.url
-        else:
-            # URL de S3 en producción
-            return f"https://{settings.AWS_S3_CUSTOM_DOMAIN}/{self.featured_image.name}"
+        # Simplemente devuelve la URL - Django se encargará de usar
+        # la configuración correcta según el entorno
+        return self.featured_image.url
         
 class Comment(models.Model):
     """Modelo para comentarios en los posts"""

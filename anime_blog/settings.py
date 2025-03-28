@@ -78,6 +78,11 @@ else:
 ALLOWED_HOSTS = ['bloganime-production.up.railway.app', 'localhost', '127.0.0.1']
 CSRF_TRUSTED_ORIGINS = ['https://bloganime-production.up.railway.app']
 
+# Configuración de archivos de medios en desarrollo
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Configuración de AWS S3 para producción
 if not DEBUG:
     AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
@@ -87,9 +92,30 @@ if not DEBUG:
         'CacheControl': 'max-age=86400',
     }
     AWS_DEFAULT_ACL = 'public-read'
+    AWS_LOCATION = 'media'
     
     # Configuración para archivos de medios
-    MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/'
+    MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_LOCATION}/'
+    
+    # Usamos la configuración STORAGES para Django 4.2+
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        },
+    }
+else:
+    # Configuración para desarrollo local
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        },
+    }
 
 # Application definition
 INSTALLED_APPS = [
@@ -133,17 +159,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'blog.middlewares.UserActivityMiddleware',  
     'blog.middlewares.Custom404Middleware',
-
 ]
-
-STORAGES = {
-    "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
-    },
-    "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
-    },
-}
 
 ROOT_URLCONF = 'anime_blog.urls'
 
@@ -225,10 +241,6 @@ STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
 
-# Media files
-# MEDIA_URL = '/media/'
-# MEDIA_ROOT = BASE_DIR / 'media'
-
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -256,7 +268,6 @@ DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@animeblog.com
 CRISPY_ALLOWED_TEMPLATE_PACKS = "tailwind"
 CRISPY_TEMPLATE_PACK = "tailwind"
 
-
 # Configuración de Summernote
 SUMMERNOTE_CONFIG = {
     'iframe': True,
@@ -283,13 +294,6 @@ SUMMERNOTE_CONFIG = {
     },
 }
 
-# Configuración de carga de archivos para Summernote
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-
-
-
 # REST Framework
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
@@ -315,4 +319,3 @@ CACHES = {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
     }
 }
-
