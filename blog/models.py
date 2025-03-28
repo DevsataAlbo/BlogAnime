@@ -35,8 +35,12 @@ class Category(models.Model):
 def post_image_path(instance, filename):
     """Genera la ruta para guardar las imágenes de los posts"""
     ext = filename.split('.')[-1]
-    slug = instance.slug or slugify(instance.title)
-    return os.path.join('post_images', f'{slug}_{instance.id}.{ext}')
+    # Genera un slug corto, máximo 30 caracteres
+    slug = instance.slug[:30] if instance.slug else slugify(instance.title)[:30]
+    # Usa un nombre más corto y único
+    import uuid
+    unique_id = str(uuid.uuid4())[:8]
+    return os.path.join('post_images', f'{slug}-{unique_id}.{ext}')
 
 class Post(models.Model):
     """Modelo para posts del blog"""
@@ -76,6 +80,20 @@ class Post(models.Model):
         if not self.slug:
             self.slug = slugify(self.title)
         super().save(*args, **kwargs)
+    
+    def get_featured_image_url(self):
+        """Obtiene la URL completa de la imagen destacada"""
+        if not self.featured_image:
+            return None
+        
+        from django.conf import settings
+        
+        if settings.DEBUG:
+            # URL local en desarrollo
+            return self.featured_image.url
+        else:
+            # URL de S3 en producción
+            return f"https://{settings.AWS_S3_CUSTOM_DOMAIN}/{self.featured_image.name}"
         
 class Comment(models.Model):
     """Modelo para comentarios en los posts"""
