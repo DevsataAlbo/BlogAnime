@@ -88,29 +88,32 @@ if not DEBUG:
     AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
     AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
-    AWS_S3_REGION_NAME = os.environ.get('AWS_S3_REGION_NAME', 'us-east-2')  # Añadido
+    AWS_S3_REGION_NAME = os.environ.get('AWS_S3_REGION_NAME', 'us-east-2')
     
-    # Configuración de dominio y acceso
-    AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com'
-    AWS_DEFAULT_ACL = 'public-read'
+    # Configuración para buckets que no soportan ACLs
+    # IMPORTANTE: Eliminamos AWS_DEFAULT_ACL ya que el bucket no permite ACLs
     AWS_S3_OBJECT_PARAMETERS = {
         'CacheControl': 'max-age=86400',
     }
     
-    # Configuración para evitar problemas con nombres de archivo
-    AWS_QUERYSTRING_AUTH = False  # Evita URLs firmadas
+    # Evita URLs firmadas y conflictos con nombres de archivos
+    AWS_QUERYSTRING_AUTH = False
+    AWS_S3_FILE_OVERWRITE = False
     
-    # Configuración de ubicación de archivos
+    # Configuración de dominio y ubicación
+    AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com'
     AWS_LOCATION = 'media'
+    
+    # URLs para archivos de medios
     MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_LOCATION}/'
     
-    # Configuración del storage usando STORAGES
+    # Configuración del storage
     STORAGES = {
         "default": {
             "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
             "OPTIONS": {
                 "location": AWS_LOCATION,
-                "file_overwrite": False,  # No sobrescribir archivos con el mismo nombre
+                "file_overwrite": False,
             },
         },
         "staticfiles": {
