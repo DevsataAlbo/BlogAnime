@@ -33,27 +33,38 @@ class Category(models.Model):
         return self.posts.filter(status='published').count()
 
 def post_image_path(instance, filename):
-    """Genera la ruta para guardar las imágenes de los posts"""
+    """
+    Genera la ruta para guardar las imágenes de los posts.
+    Asegura que los nombres de archivo sean seguros, cortos y únicos.
+    """
+    import os
     import uuid
     from django.utils.text import slugify
     
-    # Obtener la extensión del archivo
-    ext = filename.split('.')[-1]
-    
-    # Generar un slug más corto basado en el título (máximo 20 caracteres)
-    slug_base = instance.slug[:20] if instance.slug else slugify(instance.title)[:20]
-    
-    # Limpiar el slug de cualquier carácter especial
-    slug_clean = ''.join(c for c in slug_base if c.isalnum() or c == '-')
-    
-    # Generar un identificador único corto
-    unique_id = str(uuid.uuid4())[:8]
-    
-    # Crear un nombre de archivo más corto y limpio
-    filename = f"{slug_clean}-{unique_id}.{ext}"
-    
-    # Devolver la ruta completa
-    return os.path.join('post_images', filename)
+    try:
+        # Obtener la extensión del archivo de forma segura
+        ext = filename.split('.')[-1].lower() if '.' in filename else 'jpg'
+        
+        # Limitar las extensiones a tipos seguros
+        if ext not in ['jpg', 'jpeg', 'png', 'gif', 'webp']:
+            ext = 'jpg'
+        
+        # Generar un slug corto basado en el título
+        title = instance.title if hasattr(instance, 'title') and instance.title else 'post'
+        slug_base = slugify(title)[:15]  # Reducido a 15 caracteres máximo
+        
+        # Generar un identificador único
+        unique_id = str(uuid.uuid4())[:6]  # Reducido a 6 caracteres
+        
+        # Crear un nombre de archivo limpio y corto
+        safe_filename = f"{slug_base}-{unique_id}.{ext}"
+        
+        # Devolver la ruta completa
+        return os.path.join('post_images', safe_filename)
+    except Exception as e:
+        # En caso de cualquier error, generar un nombre genérico pero válido
+        unique_id = str(uuid.uuid4())[:10]
+        return os.path.join('post_images', f"post-{unique_id}.jpg")
 
 class Post(models.Model):
     """Modelo para posts del blog"""
@@ -95,13 +106,19 @@ class Post(models.Model):
         super().save(*args, **kwargs)
     
     def get_featured_image_url(self):
-        """Obtiene la URL completa de la imagen destacada"""
+        """
+        Obtiene la URL completa de la imagen destacada.
+        Maneja correctamente tanto el entorno de desarrollo como producción con S3.
+        """
         if not self.featured_image:
             return None
-        
-        # Simplemente devuelve la URL - Django se encargará de usar
-        # la configuración correcta según el entorno
-        return self.featured_image.url
+            
+        try:
+            # Simplemente devolver la URL generada por Django
+            return self.featured_image.url
+        except Exception as e:
+            # En caso de error, mostrar una URL de imagen por defecto
+            return None
         
 class Comment(models.Model):
     """Modelo para comentarios en los posts"""

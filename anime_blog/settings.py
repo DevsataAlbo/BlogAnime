@@ -84,23 +84,34 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Configuración de AWS S3 para producción
 if not DEBUG:
+    # Configuración básica de AWS
     AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
     AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
-    AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
+    AWS_S3_REGION_NAME = os.environ.get('AWS_S3_REGION_NAME', 'us-east-2')  # Añadido
+    
+    # Configuración de dominio y acceso
+    AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com'
+    AWS_DEFAULT_ACL = 'public-read'
     AWS_S3_OBJECT_PARAMETERS = {
         'CacheControl': 'max-age=86400',
     }
-    AWS_DEFAULT_ACL = 'public-read'
-    AWS_LOCATION = 'media'
     
-    # Configuración para archivos de medios
+    # Configuración para evitar problemas con nombres de archivo
+    AWS_QUERYSTRING_AUTH = False  # Evita URLs firmadas
+    
+    # Configuración de ubicación de archivos
+    AWS_LOCATION = 'media'
     MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_LOCATION}/'
     
-    # Usamos la configuración STORAGES para Django 4.2+
+    # Configuración del storage usando STORAGES
     STORAGES = {
         "default": {
             "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+            "OPTIONS": {
+                "location": AWS_LOCATION,
+                "file_overwrite": False,  # No sobrescribir archivos con el mismo nombre
+            },
         },
         "staticfiles": {
             "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
